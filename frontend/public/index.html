@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: transparent; /* Crucial for OBS */
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+        }
+        .widget {
+            background: rgba(15, 15, 20, 0.85);
+            border-left: 5px solid #E63946; /* Red accent */
+            border-right: 5px solid #457B9D; /* Blue accent */
+            padding: 15px 25px;
+            width: 250px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+        }
+        .stat-row { display: flex; justify-content: space-between; margin: 8px 0; }
+        .highlight { color: #A8DADC; font-weight: bold; } /* White/Ice accent */
+    </style>
+</head>
+<body>
+    <div class="widget">
+        <h3 style="margin-top: 0;">Live Stats</h3>
+        <div class="stat-row"><span>K/D/A:</span> <span id="kda" class="highlight">--/--/--</span></div>
+        <div class="stat-row"><span>Rank:</span> <span id="rank" class="highlight">--</span></div>
+    </div>
+
+    <script>
+        async function updateStats() {
+            try {
+                const configRes = await fetch('/config');
+                const config = await configRes.json();
+                
+                const statsRes = await fetch(`${config.API_URL}/api/stats`);
+                const data = await statsRes.json();
+                
+                document.getElementById('kda').innerText = `${data.kills}/${data.deaths}/${data.assists}`;
+                document.getElementById('rank').innerText = data.current_rank;
+            } catch (err) {
+                console.error("Error fetching stats:", err);
+            }
+        }
+        
+        // Update every 5 seconds
+        setInterval(updateStats, 5000);
+        updateStats();
+    </script>
+</body>
+</html>

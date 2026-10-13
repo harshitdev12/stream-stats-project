@@ -1,0 +1,15 @@
+# Node dependencies
+frontend/node_modules/
+
+# Python caches
+backend/__pycache__/
+*.pyc
+
+# Terraform state files (CRITICAL: Never push these to public GitHub)
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/.terraform.lock.hcl
+
+# OS generated files
+.DS_Store

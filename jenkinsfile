@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'ap-south-1'
+        AWS_ACCOUNT_ID = '697851016443' 
+        CLUSTER_NAME = 'stream-stats-cluster'
+        
+        FRONTEND_REPO = "${697851016443}.dkr.ecr.${ap-south-1}.amazonaws.com/harxitgaming-overlay-frontend"
+        BACKEND_REPO = "${697851016443}.dkr.ecr.${ap-south-1}.amazonaws.com/harxitgaming-overlay-backend"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                echo 'Building Frontend & Backend Images...'
+                sh 'docker build -t $FRONTEND_REPO:latest ./frontend'
+                sh 'docker build -t $BACKEND_REPO:latest ./backend'
+            }
+        }
+
+        stage('Security Scan (Trivy)') {
+            steps {
+                echo 'Scanning images for critical vulnerabilities...'
+                // Scans the image and fails the pipeline (--exit-code 1) if CRITICAL vulnerabilities are found
+                sh 'trivy image --severity CRITICAL --exit-code 1 $FRONTEND_REPO:latest'
+                sh 'trivy image --severity CRITICAL --exit-code 1 $BACKEND_REPO:latest'
+            }
+        }
+
+        stage('Push to AWS ECR') {
+            steps {
+                echo 'Logging into AWS ECR and pushing images...'
+                sh '''
+                aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                
+                docker push $FRONTEND_REPO:latest
+                docker push $BACKEND_REPO:latest
+                '''
+            }
+        }
+
+        stage('Deploy to AWS ECS') {
+            steps {
+                echo 'Triggering rolling update in ECS...'
+                // Forces ECS to pull the new 'latest' images and restart the containers
+                sh 'aws ecs update-service --cluster $CLUSTER_NAME --service overlay-frontend-service --force-new-deployment --region $AWS_REGION'
+                sh 'aws ecs update-service --cluster $CLUSTER_NAME --service overlay-backend-service --force-new-deployment --region $AWS_REGION'
+            }
+        }
+    }
+}
