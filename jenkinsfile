@@ -6,8 +6,8 @@ pipeline {
         AWS_ACCOUNT_ID = '697851016443' 
         CLUSTER_NAME = 'stream-stats-cluster'
         
-        FRONTEND_REPO = "697851016443}.dkr.ecr.ap-south-1}.amazonaws.com/harxitgaming-overlay-frontend"
-        BACKEND_REPO = "697851016443}.dkr.ecr.ap-south-1}.amazonaws.com/harxitgaming-overlay-backend"
+        FRONTEND_REPO = "697851016443.dkr.ecr.ap-south-1.amazonaws.com/harxitgaming-overlay-frontend"
+        BACKEND_REPO = "697851016443.dkr.ecr.ap-south-1.amazonaws.com/harxitgaming-overlay-backend"
     }
 
     stages {
